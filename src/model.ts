@@ -979,6 +979,60 @@ export class SpraypaintBase {
     })
   }
 
+  static async createBatch<I extends SpraypaintBase>(
+    objects: I[],
+    options: SaveOptions<I> = {}
+  ): Promise<boolean> {
+    let oneObj = objects[0]
+    let url = oneObj.klass.url(undefined, "batch")
+    let verb: RequestVerbs = "post"
+    const request = new Request(oneObj._middleware(), oneObj.klass.logger, {
+      patchAsPost: oneObj.klass.patchAsPost
+    })
+    let payload: any
+    objects.forEach(obj => {
+      payload.push(new WritePayload(obj, options.with))
+    })
+    let response: any
+
+    if (options.returnScope) {
+      let scope = options.returnScope
+
+      if (scope.model !== oneObj.klass) {
+        throw new Error(
+          `returnScope must be a scope of type Scope<${oneObj.klass.name}>`
+        )
+      }
+
+      url = `${url}?${scope.toQueryParams()}`
+    }
+
+    objects.forEach(obj => {
+      obj.clearErrors()
+    })
+
+    const json = payload.asJSON()
+
+    try {
+      response = await request[verb](url, json, oneObj._fetchOptions())
+    } catch (err) {
+      throw err
+    }
+
+    //     if (response.status === 202 || response.status === 204) {
+    //       return await this._handleAcceptedResponse(response, this.onDeferredUpdate)
+    //     }
+
+    return await oneObj._handleResponse(response, () => {
+      oneObj.fromJsonapi(
+        response.jsonPayload.data,
+        response.jsonPayload,
+        payload.includeDirective
+      )
+      payload.postProcess()
+    })
+  }
+
   async save<I extends SpraypaintBase>(
     this: I,
     options: SaveOptions<I> = {}

@@ -7,7 +7,6 @@ yarn.lock
 yarn-error.log
 build/
 test-old/
-dist/
 coverage/
 lib/
 lib-esm/

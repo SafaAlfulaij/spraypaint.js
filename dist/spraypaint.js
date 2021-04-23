@@ -20097,10 +20097,60 @@
                 });
             });
         };
+        SpraypaintBase.createBatch = function (objects, options) {
+            if (options === void 0) { options = {}; }
+            return __awaiter(this, void 0, void 0, function () {
+                var oneObj, url, verb, request, payload, response, scope, json, err_2;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            oneObj = objects[0];
+                            url = oneObj.klass.url(undefined, "batch");
+                            verb = "post";
+                            request = new Request(oneObj._middleware(), oneObj.klass.logger, {
+                                patchAsPost: oneObj.klass.patchAsPost
+                            });
+                            objects.forEach(function (obj) {
+                                payload.push(new WritePayload(obj, options.with));
+                            });
+                            if (options.returnScope) {
+                                scope = options.returnScope;
+                                if (scope.model !== oneObj.klass) {
+                                    throw new Error("returnScope must be a scope of type Scope<" + oneObj.klass.name + ">");
+                                }
+                                url = url + "?" + scope.toQueryParams();
+                            }
+                            objects.forEach(function (obj) {
+                                obj.clearErrors();
+                            });
+                            json = payload.asJSON();
+                            _a.label = 1;
+                        case 1:
+                            _a.trys.push([1, 3, , 4]);
+                            return [4 /*yield*/, request[verb](url, json, oneObj._fetchOptions())];
+                        case 2:
+                            response = _a.sent();
+                            return [3 /*break*/, 4];
+                        case 3:
+                            err_2 = _a.sent();
+                            throw err_2;
+                        case 4: return [4 /*yield*/, oneObj._handleResponse(response, function () {
+                                oneObj.fromJsonapi(response.jsonPayload.data, response.jsonPayload, payload.includeDirective);
+                                payload.postProcess();
+                            })];
+                        case 5: 
+                        //     if (response.status === 202 || response.status === 204) {
+                        //       return await this._handleAcceptedResponse(response, this.onDeferredUpdate)
+                        //     }
+                        return [2 /*return*/, _a.sent()];
+                    }
+                });
+            });
+        };
         SpraypaintBase.prototype.save = function (options) {
             if (options === void 0) { options = {}; }
             return __awaiter(this, void 0, void 0, function () {
-                var url, verb, request, payload, response, scope, json, err_2;
+                var url, verb, request, payload, response, scope, json, err_3;
                 var _this = this;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -20132,8 +20182,8 @@
                             response = _a.sent();
                             return [3 /*break*/, 4];
                         case 3:
-                            err_2 = _a.sent();
-                            throw err_2;
+                            err_3 = _a.sent();
+                            throw err_3;
                         case 4:
                             if (!(response.status === 202 || response.status === 204)) return [3 /*break*/, 6];
                             return [4 /*yield*/, this._handleAcceptedResponse(response, this.onDeferredUpdate)];
