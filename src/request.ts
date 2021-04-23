@@ -1,7 +1,11 @@
 import colorize from "./util/colorize"
 import { MiddlewareStack } from "./middleware-stack"
 import { ILogger, logger as defaultLogger } from "./logger"
-import { JsonapiResponseDoc, JsonapiRequestDoc } from "./jsonapi-spec"
+import {
+  JsonapiResponseDoc,
+  JsonapiRequestDoc,
+  JsonapiCollectionRequestDoc
+} from "./jsonapi-spec"
 
 export type RequestVerbs = keyof Request
 
@@ -35,7 +39,7 @@ export class Request {
 
   post(
     url: string,
-    payload: JsonapiRequestDoc,
+    payload: JsonapiRequestDoc | JsonapiCollectionRequestDoc,
     options: RequestInit
   ): Promise<any> {
     options.method = "POST"
@@ -46,7 +50,7 @@ export class Request {
 
   patch(
     url: string,
-    payload: JsonapiRequestDoc,
+    payload: JsonapiRequestDoc | JsonapiCollectionRequestDoc,
     options: RequestInit
   ): Promise<any> {
     if (this.config.patchAsPost) {

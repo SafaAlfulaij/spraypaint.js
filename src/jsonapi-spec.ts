@@ -4,6 +4,7 @@ export type JsonapiResponseDoc =
   | JsonapiErrorDoc
 export type JsonapiSuccessDoc = JsonapiCollectionDoc | JsonapiResourceDoc
 export type JsonapiRequestDoc = JsonapiResourceRequest
+export type JsonapiCollectionRequestDoc = JsonapiCollectionDoc
 
 export interface JsonapiDocMeta {
   included?: JsonapiResource[]

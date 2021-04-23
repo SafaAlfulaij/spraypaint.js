@@ -20110,6 +20110,7 @@
                             request = new Request(oneObj._middleware(), oneObj.klass.logger, {
                                 patchAsPost: oneObj.klass.patchAsPost
                             });
+                            payload = [];
                             objects.forEach(function (obj) {
                                 payload.push(new WritePayload(obj, options.with));
                             });
@@ -20123,7 +20124,17 @@
                             objects.forEach(function (obj) {
                                 obj.clearErrors();
                             });
-                            json = payload.asJSON();
+                            json = {
+                                data: [],
+                                included: []
+                            };
+                            payload.forEach(function (each) {
+                                var eachJSON = each.asJSON();
+                                if (json.data)
+                                    json.data.push(eachJSON.data);
+                                if (json.included)
+                                    json.included.concat(eachJSON.included);
+                            });
                             _a.label = 1;
                         case 1:
                             _a.trys.push([1, 3, , 4]);
@@ -20134,15 +20145,50 @@
                         case 3:
                             err_2 = _a.sent();
                             throw err_2;
-                        case 4: return [4 /*yield*/, oneObj._handleResponse(response, function () {
-                                oneObj.fromJsonapi(response.jsonPayload.data, response.jsonPayload, payload.includeDirective);
-                                payload.postProcess();
+                        case 4:
+                            if (!(response.status === 202 || response.status === 204)) return [3 /*break*/, 6];
+                            return [4 /*yield*/, this._handleAcceptedResponse(response, undefined)]; //, this.onDeferredUpdate)
+                        case 5: return [2 /*return*/, _a.sent()]; //, this.onDeferredUpdate)
+                        case 6: return [4 /*yield*/, this._handleResponse(response, function () {
+                                oneObj.fromJsonapi(response.jsonPayload.data, response.jsonPayload);
+                                //       payload.postProcess()
                             })];
-                        case 5: 
-                        //     if (response.status === 202 || response.status === 204) {
-                        //       return await this._handleAcceptedResponse(response, this.onDeferredUpdate)
-                        //     }
-                        return [2 /*return*/, _a.sent()];
+                        case 7: return [2 /*return*/, _a.sent()];
+                    }
+                });
+            });
+        };
+        SpraypaintBase._handleAcceptedResponse = function (response, callback) {
+            return __awaiter(this, void 0, void 0, function () {
+                var responseObject;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            if (response.jsonPayload && callback) {
+                                responseObject = this.fromJsonapi(response.jsonPayload.data, response.jsonPayload);
+                                callback(responseObject);
+                            }
+                            return [4 /*yield*/, this._handleResponse(response, function () { })];
+                        case 1: return [2 /*return*/, _a.sent()];
+                    }
+                });
+            });
+        };
+        SpraypaintBase._handleResponse = function (response, callback) {
+            return __awaiter(this, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    refreshJWT(this, response);
+                    if (response.status === 422) {
+                        //       try {
+                        //         ValidationErrorBuilder.apply(this, response.jsonPayload)
+                        //       } catch (e) {
+                        //         throw new ResponseError(response, "validation failed", e)
+                        //       }
+                        return [2 /*return*/, false];
+                    }
+                    else {
+                        callback();
+                        return [2 /*return*/, true];
                     }
                 });
             });

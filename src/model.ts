@@ -36,6 +36,8 @@ import { Omit } from "./util/omit"
 import { EventBus } from "./event-bus"
 
 import {
+  JsonapiRequestDoc,
+  JsonapiCollectionRequestDoc,
   JsonapiResource,
   JsonapiResponseDoc,
   JsonapiResourceIdentifier
@@ -989,7 +991,7 @@ export class SpraypaintBase {
     const request = new Request(oneObj._middleware(), oneObj.klass.logger, {
       patchAsPost: oneObj.klass.patchAsPost
     })
-    let payload: any
+    let payload: any[] = []
     objects.forEach(obj => {
       payload.push(new WritePayload(obj, options.with))
     })
@@ -1011,7 +1013,16 @@ export class SpraypaintBase {
       obj.clearErrors()
     })
 
-    const json = payload.asJSON()
+    let json: JsonapiCollectionRequestDoc = {
+      data: [],
+      included: []
+    }
+
+    payload.forEach(each => {
+      let eachJSON = each.asJSON()
+      if (json.data) json.data.push(eachJSON.data)
+      if (json.included) json.included.concat(eachJSON.included)
+    })
 
     try {
       response = await request[verb](url, json, oneObj._fetchOptions())
@@ -1019,18 +1030,51 @@ export class SpraypaintBase {
       throw err
     }
 
-    //     if (response.status === 202 || response.status === 204) {
-    //       return await this._handleAcceptedResponse(response, this.onDeferredUpdate)
-    //     }
+    if (response.status === 202 || response.status === 204) {
+      return await this._handleAcceptedResponse(response, undefined) //, this.onDeferredUpdate)
+    }
 
-    return await oneObj._handleResponse(response, () => {
+    return await this._handleResponse(response, () => {
       oneObj.fromJsonapi(
         response.jsonPayload.data,
-        response.jsonPayload,
-        payload.includeDirective
+        response.jsonPayload
+        //         payload.includeDirective
       )
-      payload.postProcess()
+      //       payload.postProcess()
     })
+  }
+
+  private static async _handleAcceptedResponse(
+    response: any,
+    callback: DeferredActionCallback | undefined
+  ): Promise<boolean> {
+    if (response.jsonPayload && callback) {
+      const responseObject = this.fromJsonapi(
+        response.jsonPayload.data,
+        response.jsonPayload
+      )
+      callback(responseObject)
+    }
+    return await this._handleResponse(response, () => {})
+  }
+
+  private static async _handleResponse(
+    response: JsonapiResponse,
+    callback: () => void
+  ): Promise<boolean> {
+    refreshJWT(this, response)
+
+    if (response.status === 422) {
+      //       try {
+      //         ValidationErrorBuilder.apply(this, response.jsonPayload)
+      //       } catch (e) {
+      //         throw new ResponseError(response, "validation failed", e)
+      //       }
+      return false
+    } else {
+      callback()
+      return true
+    }
   }
 
   async save<I extends SpraypaintBase>(
