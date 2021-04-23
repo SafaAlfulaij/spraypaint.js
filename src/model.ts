@@ -775,7 +775,7 @@ export class SpraypaintBase {
   }
 
   static url(id?: string | number, extra?: string): string {
-    const endpoint = this.endpoint || `/${this.jsonapiType}`
+    const endpoint = this.endpoint || `${this.jsonapiType}`
     let parts: (string)[] = [this.fullBasePath(), endpoint]
 
     if (id) {
