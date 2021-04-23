@@ -171,6 +171,7 @@ export class SpraypaintBase {
   static credentials: "same-origin" | "omit" | "include" | undefined
   static clientApplication: string | null = null
   static patchAsPost: boolean = false
+  static appendSlash: boolean = true
 
   static attributeList: Record<string, Attribute> = {}
   static linkList: Array<string> = []
@@ -773,15 +774,19 @@ export class SpraypaintBase {
     return options
   }
 
-  static url(id?: string | number): string {
+  static url(id?: string | number, extra?: string): string {
     const endpoint = this.endpoint || `/${this.jsonapiType}`
-    let base = `${this.fullBasePath()}${endpoint}`
+    let parts: (string)[] = [this.fullBasePath(), endpoint]
 
     if (id) {
-      base = `${base}/${id}`
+      parts.push(id as string)
     }
 
-    return base
+    if (extra) {
+      parts.push(extra)
+    }
+
+    return `${parts.join("/")}${this.appendSlash ? "/" : ""}`
   }
 
   static fullBasePath(): string {
