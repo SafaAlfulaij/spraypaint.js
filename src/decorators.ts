@@ -166,19 +166,27 @@ const AttrDecoratorFactory: {
 }
 
 const LinkDecoratorFactory = function(
-  fieldDetail?: FieldDecoratorDescriptor
+  configOrTarget?: FieldDecoratorDescriptor
 ): any {
-  const trackLink = (Model: typeof SpraypaintBase, propKey: string) => {
+  const trackLink = (
+    Model: typeof SpraypaintBase,
+    propKey: string,
+    value: typeof SpraypaintBase | null = null
+  ) => {
     ensureModelInheritance(Model)
-    Model.linkList[propKey] = null
+    Model.linkList[propKey] = value
   }
 
-  if (isModernDecoratorDescriptor(fieldDetail)) {
-    return Object.assign(fieldDetail, {
+  if (isModernDecoratorDescriptor(configOrTarget)) {
+    return Object.assign(configOrTarget, {
       finisher: (Model: typeof SpraypaintBase) => {
-        trackLink(Model, fieldDetail.key)
+        trackLink(Model, configOrTarget.key)
       }
     })
+  } else if (isModelClass(configOrTarget)) {
+    return (target: SpraypaintBase, propKey: string) => {
+      trackLink(target.klass, propKey, configOrTarget)
+    }
   } else {
     return (target: SpraypaintBase, propKey: string) => {
       trackLink(<any>target.constructor, propKey)

@@ -20726,17 +20726,23 @@
             };
         }
     };
-    var LinkDecoratorFactory = function (fieldDetail) {
-        var trackLink = function (Model, propKey) {
+    var LinkDecoratorFactory = function (configOrTarget) {
+        var trackLink = function (Model, propKey, value) {
+            if (value === void 0) { value = null; }
             ensureModelInheritance(Model);
-            Model.linkList[propKey] = null;
+            Model.linkList[propKey] = value;
         };
-        if (isModernDecoratorDescriptor(fieldDetail)) {
-            return Object.assign(fieldDetail, {
+        if (isModernDecoratorDescriptor(configOrTarget)) {
+            return Object.assign(configOrTarget, {
                 finisher: function (Model) {
-                    trackLink(Model, fieldDetail.key);
+                    trackLink(Model, configOrTarget.key);
                 }
             });
+        }
+        else if (isModelClass(configOrTarget)) {
+            return function (target, propKey) {
+                trackLink(target.klass, propKey, configOrTarget);
+            };
         }
         else {
             return function (target, propKey) {
