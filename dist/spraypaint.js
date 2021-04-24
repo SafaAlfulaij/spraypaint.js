@@ -20311,6 +20311,13 @@
         SpraypaintBase.prototype.resetRelationTracking = function (includeDirective) {
             this._originalRelationships = this.relationshipResourceIdentifiers(Object.keys(includeDirective));
         };
+        Object.defineProperty(SpraypaintBase.prototype, "relations", {
+            get: function () {
+                return this._linkRelations;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(SpraypaintBase.prototype, "links", {
             get: function () {
                 return this._links;
@@ -20745,7 +20752,7 @@
         }
         else {
             return function (target, propKey) {
-                trackLink(target.constructor, propKey, target.klass);
+                trackLink(target.constructor, propKey, configOrTarget);
             };
         }
     };
