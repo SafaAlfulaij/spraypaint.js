@@ -169,6 +169,12 @@ const LinkDecoratorFactory = function(
   fieldDetail?: FieldDecoratorDescriptor,
   relatedModel?: typeof SpraypaintBase
 ): any {
+  const extend = (ModelClass: typeof SpraypaintBase): typeof SpraypaintBase => {
+    ensureModelInheritance(ModelClass)
+
+    return ModelClass
+  }
+
   const trackLink = (target: typeof SpraypaintBase, propKey: string) => {
     const ModelClass = extend(<any>target.constructor)
     ModelClass.linkList[propKey] = relatedModel
@@ -177,13 +183,19 @@ const LinkDecoratorFactory = function(
   if (isModernDecoratorDescriptor(fieldDetail)) {
     return Object.assign(fieldDetail, {
       finisher: (ModelClass: typeof SpraypaintBase) => {
-        trackLink(ModelClass.prototype, fieldDetail.key)
+        trackLink(ModelClass, fieldDetail.key)
       }
     })
   } else {
-    return (target: SpraypaintBase, propKey: string) => {
-      trackLink(target.prototype, propKey)
+    return (target: typeof SpraypaintBase, propKey: string) => {
+      trackLink(target, propKey)
     }
+  }
+}
+
+const ensureModelInheritance = (ModelClass: typeof SpraypaintBase) => {
+  if (ModelClass.currentClass !== ModelClass) {
+    ModelClass.currentClass.inherited(ModelClass)
   }
 }
 

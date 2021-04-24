@@ -20727,20 +20727,24 @@
         }
     };
     var LinkDecoratorFactory = function (fieldDetail, relatedModel) {
-        var trackLink = function (Model, propKey) {
-            ensureModelInheritance(Model);
-            Model.linkList[propKey] = relatedModel;
+        var extend = function (ModelClass) {
+            ensureModelInheritance(ModelClass);
+            return ModelClass;
+        };
+        var trackLink = function (target, propKey) {
+            var ModelClass = extend(target.constructor);
+            ModelClass.linkList[propKey] = relatedModel;
         };
         if (isModernDecoratorDescriptor(fieldDetail)) {
             return Object.assign(fieldDetail, {
-                finisher: function (Model) {
-                    trackLink(Model, fieldDetail.key);
+                finisher: function (ModelClass) {
+                    trackLink(ModelClass, fieldDetail.key);
                 }
             });
         }
         else {
             return function (target, propKey) {
-                trackLink(target.constructor, propKey);
+                trackLink(target, propKey);
             };
         }
     };
