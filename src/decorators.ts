@@ -166,11 +166,12 @@ const AttrDecoratorFactory: {
 }
 
 const LinkDecoratorFactory = function(
-  fieldDetail?: FieldDecoratorDescriptor
+  fieldDetail?: FieldDecoratorDescriptor,
+  relatedModel?: typeof SpraypaintBase
 ): any {
   const trackLink = (Model: typeof SpraypaintBase, propKey: string) => {
     ensureModelInheritance(Model)
-    Model.linkList.push(propKey)
+    Model.linkList[propKey] = relatedModel
   }
 
   if (isModernDecoratorDescriptor(fieldDetail)) {

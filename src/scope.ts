@@ -52,15 +52,15 @@ export class Scope<T extends SpraypaintBase = SpraypaintBase> {
   private _stats: StatsScope = {}
   private _extraParams: any = {}
   private _extraFetchOptions: RequestInit = {}
+  private _overdiddenUrl: string = ""
 
   constructor(model: Constructor<T> | typeof SpraypaintBase) {
     this.model = (model as any) as typeof SpraypaintBase
   }
 
   async all(): Promise<CollectionProxy<T>> {
-    const response = (await this._fetch(
-      this.model.url()
-    )) as JsonapiCollectionDoc
+    let url = this._overdiddenUrl || this.model.url()
+    const response = (await this._fetch(url)) as JsonapiCollectionDoc
 
     return this._buildCollectionResult(response)
   }
@@ -116,6 +116,13 @@ export class Scope<T extends SpraypaintBase = SpraypaintBase> {
         copy._filter[key] = clause[key]
       }
     }
+    return copy
+  }
+
+  fromUrl(url: string): Scope<T> {
+    const copy = this.copy()
+
+    copy._overdiddenUrl = url
     return copy
   }
 

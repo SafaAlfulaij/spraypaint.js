@@ -176,7 +176,7 @@ export class SpraypaintBase {
   static appendSlash: boolean = true
 
   static attributeList: Record<string, Attribute> = {}
-  static linkList: Array<string> = []
+  static linkList: Record<string, typeof SpraypaintBase> = {}
   static extendOptions: any
   static parentClass: typeof SpraypaintBase
   static currentClass: typeof SpraypaintBase = SpraypaintBase
@@ -382,7 +382,7 @@ export class SpraypaintBase {
     }
 
     Subclass.attributeList = Object.assign({}, Subclass.attributeList, attrs)
-    Subclass.linkList = Subclass.linkList.slice()
+    Subclass.linkList = Object.assign({}, Subclass.linkList)
 
     applyModelConfig(Subclass, options.static || {})
 
@@ -425,6 +425,8 @@ export class SpraypaintBase {
   @nonenumerable private _originalAttributes: ModelRecord<this>
   @nonenumerable private _links!: ModelRecord<this>
   @nonenumerable private _originalLinks!: ModelRecord<this>
+  @nonenumerable private _linkRelations!: ModelRecord<this>
+  @nonenumerable private _originalLinkRelations!: ModelRecord<this>
   @nonenumerable private __meta__: any
   @nonenumerable private _metaDirty: boolean = false
   @nonenumerable private _errors: ValidationErrors<this> = {}
@@ -435,6 +437,7 @@ export class SpraypaintBase {
     this.assignAttributes(attrs)
     this._originalAttributes = cloneDeep(this._attributes)
     this._originalLinks = cloneDeep(this._links)
+    this._originalLinkRelations = cloneDeep(this._linkRelations)
     this._originalRelationships = this.relationshipResourceIdentifiers(
       Object.keys(this.relationships)
     )
@@ -447,6 +450,7 @@ export class SpraypaintBase {
 
   private _initializeLinks() {
     this._links = {}
+    this._linkRelations = {}
   }
 
   /*
@@ -852,6 +856,10 @@ export class SpraypaintBase {
     return this.scope().per(size)
   }
 
+  static fromUrl<I extends typeof SpraypaintBase>(this: I, url: string) {
+    return this.scope().fromUrl(url)
+  }
+
   static extraParams<I extends typeof SpraypaintBase>(this: I, clause: any) {
     return this.scope().extraParams(clause)
   }
@@ -1195,8 +1203,9 @@ export class SpraypaintBase {
     if (!links) return
     for (const key in links) {
       const attributeName = this.klass.deserializeKey(key)
-      if (this.klass.linkList.indexOf(attributeName) > -1) {
+      if (this.klass.linkList.hasOwnProperty(attributeName)) {
         this._links[attributeName] = links[key]
+        this._linkRelations[attributeName] = this.klass.linkList[key]
       }
     }
   }
