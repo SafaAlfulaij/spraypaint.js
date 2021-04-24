@@ -20726,25 +20726,21 @@
             };
         }
     };
-    var LinkDecoratorFactory = function (fieldDetail, relatedModel) {
-        var extend = function (ModelClass) {
-            ensureModelInheritance(ModelClass);
-            return ModelClass;
-        };
-        var trackLink = function (target, propKey) {
-            var ModelClass = extend(target.constructor);
-            ModelClass.linkList[propKey] = relatedModel;
+    var LinkDecoratorFactory = function (fieldDetail) {
+        var trackLink = function (Model, propKey) {
+            ensureModelInheritance(Model);
+            Model.linkList[propKey] = null;
         };
         if (isModernDecoratorDescriptor(fieldDetail)) {
             return Object.assign(fieldDetail, {
-                finisher: function (ModelClass) {
-                    trackLink(ModelClass, fieldDetail.key);
+                finisher: function (Model) {
+                    trackLink(Model, fieldDetail.key);
                 }
             });
         }
         else {
             return function (target, propKey) {
-                trackLink(target, propKey);
+                trackLink(target.constructor, propKey);
             };
         }
     };

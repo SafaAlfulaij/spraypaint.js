@@ -170,7 +170,7 @@ const LinkDecoratorFactory = function(
 ): any {
   const trackLink = (Model: typeof SpraypaintBase, propKey: string) => {
     ensureModelInheritance(Model)
-    Model.linkList.push(propKey)
+    Model.linkList[propKey] = null
   }
 
   if (isModernDecoratorDescriptor(fieldDetail)) {

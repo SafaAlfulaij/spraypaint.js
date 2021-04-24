@@ -176,7 +176,7 @@ export class SpraypaintBase {
   static appendSlash: boolean = true
 
   static attributeList: Record<string, Attribute> = {}
-  static linkList: Record<string, typeof SpraypaintBase | undefined> = {}
+  static linkList: Record<string, any> = {}
   static extendOptions: any
   static parentClass: typeof SpraypaintBase
   static currentClass: typeof SpraypaintBase = SpraypaintBase
