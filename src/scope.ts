@@ -59,25 +59,24 @@ export class Scope<T extends SpraypaintBase = SpraypaintBase> {
   }
 
   async all(): Promise<CollectionProxy<T>> {
-    let url = this._overdiddenUrl || this.model.url()
+    const url = this._overdiddenUrl || this.model.url()
     const response = (await this._fetch(url)) as JsonapiCollectionDoc
 
     return this._buildCollectionResult(response)
   }
 
   async find(id: string | number): Promise<RecordProxy<T>> {
-    const json = (await this._fetch(this.model.url(id))) as JsonapiResourceDoc
+    const url = this._overdiddenUrl || this.model.url(id)
+    const json = (await this._fetch(url)) as JsonapiResourceDoc
 
     return this._buildRecordResult(json)
   }
 
   async first(): Promise<RecordProxy<T> | NullProxy<T>> {
     const newScope = this.per(1)
-    let rawResult
+    const url = this._overdiddenUrl || newScope.model.url()
 
-    rawResult = (await newScope._fetch(
-      newScope.model.url()
-    )) as JsonapiCollectionDoc
+    let rawResult = (await newScope._fetch(url)) as JsonapiCollectionDoc
 
     return this._buildRecordResult(rawResult)
   }
