@@ -20341,7 +20341,7 @@
         SpraypaintBase.sync = false;
         SpraypaintBase.clientApplication = null;
         SpraypaintBase.patchAsPost = false;
-        SpraypaintBase.appendSlash = true;
+        SpraypaintBase.appendSlash = false;
         SpraypaintBase.attributeList = {};
         SpraypaintBase.linkList = {};
         SpraypaintBase.currentClass = SpraypaintBase;
@@ -20738,15 +20738,14 @@
                     trackLink(Model, configOrTarget.key);
                 }
             });
-        }
-        else if (isModelClass(configOrTarget)) {
-            return function (target, propKey) {
-                trackLink(target.klass, propKey, configOrTarget);
-            };
+            //   } else if (isModelClass(configOrTarget)) {
+            //     return (target: SpraypaintBase, propKey: string) => {
+            //       trackLink(target, propKey, configOrTarget)
+            //     }
         }
         else {
             return function (target, propKey) {
-                trackLink(target.constructor, propKey);
+                trackLink(target.constructor, propKey, target.klass);
             };
         }
     };

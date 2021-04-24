@@ -166,7 +166,7 @@ const AttrDecoratorFactory: {
 }
 
 const LinkDecoratorFactory = function(
-  configOrTarget?: FieldDecoratorDescriptor
+  configOrTarget?: typeof SpraypaintBase | FieldDecoratorDescriptor
 ): any {
   const trackLink = (
     Model: typeof SpraypaintBase,
@@ -183,13 +183,13 @@ const LinkDecoratorFactory = function(
         trackLink(Model, configOrTarget.key)
       }
     })
-  } else if (isModelClass(configOrTarget)) {
-    return (target: SpraypaintBase, propKey: string) => {
-      trackLink(target.klass, propKey, configOrTarget)
-    }
+    //   } else if (isModelClass(configOrTarget)) {
+    //     return (target: SpraypaintBase, propKey: string) => {
+    //       trackLink(target, propKey, configOrTarget)
+    //     }
   } else {
     return (target: SpraypaintBase, propKey: string) => {
-      trackLink(<any>target.constructor, propKey)
+      trackLink(<any>target.constructor, propKey, target.klass)
     }
   }
 }

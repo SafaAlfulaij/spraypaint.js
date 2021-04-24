@@ -173,7 +173,7 @@ describe("Decorators", () => {
         @Link() link1!: string
       }
 
-      expect(TestClass.linkList).to.include("link1")
+      expect(Object.keys(TestClass.linkList)).to.include("link1")
     })
 
     it("child class adds to the link list of parent", () => {
@@ -186,9 +186,9 @@ describe("Decorators", () => {
         @Link() link2!: string
       }
 
-      expect(ChildTestClass.linkList).to.include("link1")
-      expect(ChildTestClass.linkList).to.include("link2")
-      expect(TestClass.linkList).to.not.include("link2")
+      expect(Object.keys(ChildTestClass.linkList)).to.include("link1")
+      expect(Object.keys(ChildTestClass.linkList)).to.include("link2")
+      expect(Object.keys(TestClass.linkList)).to.not.include("link2")
     })
   })
 

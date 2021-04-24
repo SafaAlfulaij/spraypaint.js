@@ -18,7 +18,7 @@ export class ApplicationRecord extends SpraypaintBase {}
 
 @Model()
 export class Person extends ApplicationRecord {
-  static endpoint = "/v1/people"
+  static endpoint = "v1/people"
   static jsonapiType = "people"
 
   @Attr firstName!: string | null
@@ -32,12 +32,21 @@ export class PersonWithExtraAttr extends Person {
   @Attr({ persist: false }) extraThing!: string
 }
 
+@Model({
+  endpoint: "v1/author_links",
+  jsonapiType: "author_links"
+})
+export class AuthorLinks extends Person {
+  @Attr nilly!: string
+}
+
 @Model()
 export class PersonWithLinks extends Person {
-  static endpoint = "/v1/people_with_links"
+  static endpoint = "v1/people_with_links"
   static jsonapiType = "people_with_links"
 
   @Link() self!: string
+  @Link(AuthorLinks) selfWithParam!: string
   @Link() webView!: string
 }
 
@@ -69,7 +78,7 @@ export class PersonWithoutCamelizedKeys extends Person {
 export class PersonWithDasherizedKeys extends Person {}
 
 @Model({
-  endpoint: "/v1/authors",
+  endpoint: "v1/authors",
   jsonapiType: "authors"
 })
 export class Author extends Person {
@@ -96,7 +105,7 @@ export class Book extends ApplicationRecord {
 
 export const NonFictionAuthor = Author.extend({
   static: {
-    endpoint: "/v1/non_fiction_authors",
+    endpoint: "v1/non_fiction_authors",
     jsonapiType: "non_fiction_authors",
     keyCase: { server: "snake", client: "snake" }
   },

@@ -173,7 +173,7 @@ export class SpraypaintBase {
   static credentials: "same-origin" | "omit" | "include" | undefined
   static clientApplication: string | null = null
   static patchAsPost: boolean = false
-  static appendSlash: boolean = true
+  static appendSlash: boolean = false
 
   static attributeList: Record<string, Attribute> = {}
   static linkList: Record<string, any> = {}
