@@ -1190,6 +1190,10 @@ export class SpraypaintBase {
     )
   }
 
+  get relations(): Record<string, any> {
+    return this._linkRelations
+  }
+
   get links(): Record<string, any> {
     return this._links
   }

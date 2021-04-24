@@ -1596,6 +1596,7 @@ describe("Model", () => {
           attributes: { firstName: "Donald Budge" },
           links: {
             self: { href: "/api/person/1", meta: { count: 10 } },
+            self_with_param: { href: "/api/person/1", meta: { count: 10 } },
             web_view: "/person/1"
           },
           meta: {
@@ -1617,6 +1618,9 @@ describe("Model", () => {
         const person = new PersonWithLinks({ id: "1", firstName: "Stephen" })
         person.fromJsonapi(doc.data, doc)
         assertPersonIsCorrect(person)
+        console.log(person.klass.linkList)
+        console.log(person.links)
+        console.log(person.relations)
       })
 
       it("from class", () => {

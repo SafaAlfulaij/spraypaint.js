@@ -189,7 +189,7 @@ const LinkDecoratorFactory = function(
     //     }
   } else {
     return (target: SpraypaintBase, propKey: string) => {
-      trackLink(<any>target.constructor, propKey, target.klass)
+      trackLink(<any>target.constructor, propKey, configOrTarget)
     }
   }
 }
