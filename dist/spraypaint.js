@@ -18442,14 +18442,17 @@
             this._stats = {};
             this._extraParams = {};
             this._extraFetchOptions = {};
+            this._overdiddenUrl = "";
             this.model = model;
         }
         Scope.prototype.all = function () {
             return __awaiter(this, void 0, void 0, function () {
-                var response;
+                var url, response;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, this._fetch(this.model.url())];
+                        case 0:
+                            url = this._overdiddenUrl || this.model.url();
+                            return [4 /*yield*/, this._fetch(url)];
                         case 1:
                             response = (_a.sent());
                             return [2 /*return*/, this._buildCollectionResult(response)];
@@ -18459,10 +18462,12 @@
         };
         Scope.prototype.find = function (id) {
             return __awaiter(this, void 0, void 0, function () {
-                var json;
+                var url, json;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, this._fetch(this.model.url(id))];
+                        case 0:
+                            url = this._overdiddenUrl || this.model.url(id);
+                            return [4 /*yield*/, this._fetch(url)];
                         case 1:
                             json = (_a.sent());
                             return [2 /*return*/, this._buildRecordResult(json)];
@@ -18472,12 +18477,13 @@
         };
         Scope.prototype.first = function () {
             return __awaiter(this, void 0, void 0, function () {
-                var newScope, rawResult;
+                var newScope, url, rawResult;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             newScope = this.per(1);
-                            return [4 /*yield*/, newScope._fetch(newScope.model.url())];
+                            url = this._overdiddenUrl || newScope.model.url();
+                            return [4 /*yield*/, newScope._fetch(url)];
                         case 1:
                             rawResult = (_a.sent());
                             return [2 /*return*/, this._buildRecordResult(rawResult)];
@@ -18512,6 +18518,11 @@
                     copy._filter[key] = clause[key];
                 }
             }
+            return copy;
+        };
+        Scope.prototype.fromUrl = function (url) {
+            var copy = this.copy();
+            copy._overdiddenUrl = url;
             return copy;
         };
         Scope.prototype.extraParams = function (clause) {
@@ -19444,6 +19455,7 @@
             this.assignAttributes(attrs);
             this._originalAttributes = lodash.cloneDeep(this._attributes);
             this._originalLinks = lodash.cloneDeep(this._links);
+            this._originalLinkRelations = lodash.cloneDeep(this._linkRelations);
             this._originalRelationships = this.relationshipResourceIdentifiers(Object.keys(this.relationships));
         }
         Object.defineProperty(SpraypaintBase, "credentialStorage", {
@@ -19597,7 +19609,7 @@
                 }
             }
             Subclass.attributeList = Object.assign({}, Subclass.attributeList, attrs);
-            Subclass.linkList = Subclass.linkList.slice();
+            Subclass.linkList = Object.assign({}, Subclass.linkList);
             applyModelConfig(Subclass, options.static || {});
             Subclass.registerType();
             if (options.methods) {
@@ -19615,6 +19627,7 @@
         };
         SpraypaintBase.prototype._initializeLinks = function () {
             this._links = {};
+            this._linkRelations = {};
         };
         /*
          * VueJS, along with a few other frameworks rely on objects being "reactive". In practice, this
@@ -19990,6 +20003,9 @@
         SpraypaintBase.per = function (size) {
             return this.scope().per(size);
         };
+        SpraypaintBase.fromUrl = function (url) {
+            return this.scope().fromUrl(url);
+        };
         SpraypaintBase.extraParams = function (clause) {
             return this.scope().extraParams(clause);
         };
@@ -20150,7 +20166,9 @@
                             return [4 /*yield*/, this._handleAcceptedResponse(response, undefined)]; //, this.onDeferredUpdate)
                         case 5: return [2 /*return*/, _a.sent()]; //, this.onDeferredUpdate)
                         case 6: return [4 /*yield*/, this._handleResponse(response, function () {
-                                oneObj.fromJsonapi(response.jsonPayload.data, response.jsonPayload);
+                                oneObj.fromJsonapi(response.jsonPayload.data, response.jsonPayload
+                                //         payload.includeDirective
+                                );
                                 //       payload.postProcess()
                             })];
                         case 7: return [2 /*return*/, _a.sent()];
@@ -20309,8 +20327,9 @@
                 return;
             for (var key in links) {
                 var attributeName = this.klass.deserializeKey(key);
-                if (this.klass.linkList.indexOf(attributeName) > -1) {
+                if (this.klass.linkList.hasOwnProperty(attributeName)) {
                     this._links[attributeName] = links[key];
+                    this._linkRelations[attributeName] = this.klass.linkList[key];
                 }
             }
         };
@@ -20324,7 +20343,7 @@
         SpraypaintBase.patchAsPost = false;
         SpraypaintBase.appendSlash = true;
         SpraypaintBase.attributeList = {};
-        SpraypaintBase.linkList = [];
+        SpraypaintBase.linkList = {};
         SpraypaintBase.currentClass = SpraypaintBase;
         SpraypaintBase._jwtStorage = "jwt";
         /*
@@ -20378,6 +20397,12 @@
         __decorate([
             nonenumerable
         ], SpraypaintBase.prototype, "_originalLinks", void 0);
+        __decorate([
+            nonenumerable
+        ], SpraypaintBase.prototype, "_linkRelations", void 0);
+        __decorate([
+            nonenumerable
+        ], SpraypaintBase.prototype, "_originalLinkRelations", void 0);
         __decorate([
             nonenumerable
         ], SpraypaintBase.prototype, "__meta__", void 0);
@@ -20701,10 +20726,10 @@
             };
         }
     };
-    var LinkDecoratorFactory = function (fieldDetail) {
+    var LinkDecoratorFactory = function (fieldDetail, relatedModel) {
         var trackLink = function (Model, propKey) {
             ensureModelInheritance(Model);
-            Model.linkList.push(propKey);
+            Model.linkList[propKey] = relatedModel;
         };
         if (isModernDecoratorDescriptor(fieldDetail)) {
             return Object.assign(fieldDetail, {
