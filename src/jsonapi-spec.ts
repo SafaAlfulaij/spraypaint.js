@@ -9,6 +9,7 @@ export type JsonapiCollectionRequestDoc = JsonapiCollectionDoc
 export interface JsonapiDocMeta {
   included?: JsonapiResource[]
   meta?: Record<string, any>
+  links?: Record<string, any>
 }
 
 export interface JsonapiCollectionDoc extends JsonapiDocMeta {

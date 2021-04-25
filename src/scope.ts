@@ -52,21 +52,28 @@ export class Scope<T extends SpraypaintBase = SpraypaintBase> {
   private _stats: StatsScope = {}
   private _extraParams: any = {}
   private _extraFetchOptions: RequestInit = {}
-  private _overdiddenUrl: string = ""
+  private _overriddenUrl: string = ""
 
   constructor(model: Constructor<T> | typeof SpraypaintBase) {
     this.model = (model as any) as typeof SpraypaintBase
   }
 
   async all(): Promise<CollectionProxy<T>> {
-    const url = this._overdiddenUrl || this.model.url()
+    const url = this._overriddenUrl || this.model.url()
     const response = (await this._fetch(url)) as JsonapiCollectionDoc
 
     return this._buildCollectionResult(response)
   }
 
   async find(id: string | number): Promise<RecordProxy<T>> {
-    const url = this._overdiddenUrl || this.model.url(id)
+    const url = this._overriddenUrl || this.model.url(id)
+    const json = (await this._fetch(url)) as JsonapiResourceDoc
+
+    return this._buildRecordResult(json)
+  }
+
+  async get(): Promise<RecordProxy<T>> {
+    const url = this._overriddenUrl
     const json = (await this._fetch(url)) as JsonapiResourceDoc
 
     return this._buildRecordResult(json)
@@ -74,7 +81,7 @@ export class Scope<T extends SpraypaintBase = SpraypaintBase> {
 
   async first(): Promise<RecordProxy<T> | NullProxy<T>> {
     const newScope = this.per(1)
-    const url = this._overdiddenUrl || newScope.model.url()
+    const url = this._overriddenUrl || newScope.model.url()
 
     let rawResult = (await newScope._fetch(url)) as JsonapiCollectionDoc
 
@@ -121,7 +128,7 @@ export class Scope<T extends SpraypaintBase = SpraypaintBase> {
   fromUrl(url: string): Scope<T> {
     const copy = this.copy()
 
-    copy._overdiddenUrl = url
+    copy._overriddenUrl = url
     return copy
   }
 

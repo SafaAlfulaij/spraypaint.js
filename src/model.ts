@@ -844,6 +844,10 @@ export class SpraypaintBase {
     return this.scope().find(id)
   }
 
+  static get<I extends typeof SpraypaintBase>(this: I) {
+    return this.scope().get()
+  }
+
   static where<I extends typeof SpraypaintBase>(this: I, clause: WhereClause) {
     return this.scope().where(clause)
   }
@@ -1190,7 +1194,7 @@ export class SpraypaintBase {
     )
   }
 
-  get relations(): Record<string, any> {
+  get linkRelations(): Record<string, any> {
     return this._linkRelations
   }
 
@@ -1209,7 +1213,9 @@ export class SpraypaintBase {
       const attributeName = this.klass.deserializeKey(key)
       if (this.klass.linkList.hasOwnProperty(attributeName)) {
         this._links[attributeName] = links[key]
-        this._linkRelations[attributeName] = this.klass.linkList[key]
+        this._linkRelations[attributeName] = this.klass.linkList[key].fromUrl(
+          links[key]
+        )
       }
     }
   }

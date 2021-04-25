@@ -18059,6 +18059,13 @@
             }
             return new klass();
         };
+        Deserializer.prototype.klassFor = function (type) {
+            var klass = this.registry.get(type);
+            if (!klass) {
+                throw new Error("Unknown type \"" + type + "\"");
+            }
+            return klass;
+        };
         Deserializer.prototype.relationshipInstanceFor = function (datum, records) {
             var record = records.find(function (r) {
                 return !!(r.klass.jsonapiType === datum.type &&
@@ -18159,7 +18166,7 @@
                     for (var _i = 0, relationData_1 = relationData; _i < relationData_1.length; _i++) {
                         var datum = relationData_1[_i];
                         var hydratedDatum = _this.findResource(datum);
-                        var associationRecords = instanceIdx[relationName];
+                        var associationRecords = instanceIdx[relationName] || [];
                         var relatedInstance = _this.relationshipInstanceFor(hydratedDatum, associationRecords);
                         relatedInstance = _this.deserializeInstance(relatedInstance, hydratedDatum, nestedIncludeDirective);
                         _this.pushRelation(instance, relationName, relatedInstance);
@@ -18180,12 +18187,18 @@
             for (var key in relationships) {
                 if (relationships.hasOwnProperty(key)) {
                     var relationName = instance.klass.deserializeKey(key);
-                    if (instance.klass.attributeList[relationName]) {
+                    var fieldClass = instance.klass.attributeList[relationName];
+                    if (fieldClass) {
                         var relationData = relationships[key].data;
-                        if (!relationData) {
-                            continue;
-                        } // only links, empty, etc
-                        callback(relationName, relationData);
+                        if (relationData)
+                            callback(relationName, relationData);
+                        instance[relationName + 'Links'] = {};
+                        var relationLinks = relationships[key].links;
+                        if (relationLinks && relationLinks.related) {
+                            instance[relationName + 'Links'] = {
+                                related: this.klassFor(fieldClass.name).fromUrl(relationLinks.related)
+                            };
+                        }
                     }
                 }
             }
@@ -18442,7 +18455,7 @@
             this._stats = {};
             this._extraParams = {};
             this._extraFetchOptions = {};
-            this._overdiddenUrl = "";
+            this._overriddenUrl = "";
             this.model = model;
         }
         Scope.prototype.all = function () {
@@ -18451,7 +18464,7 @@
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            url = this._overdiddenUrl || this.model.url();
+                            url = this._overriddenUrl || this.model.url();
                             return [4 /*yield*/, this._fetch(url)];
                         case 1:
                             response = (_a.sent());
@@ -18466,7 +18479,22 @@
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            url = this._overdiddenUrl || this.model.url(id);
+                            url = this._overriddenUrl || this.model.url(id);
+                            return [4 /*yield*/, this._fetch(url)];
+                        case 1:
+                            json = (_a.sent());
+                            return [2 /*return*/, this._buildRecordResult(json)];
+                    }
+                });
+            });
+        };
+        Scope.prototype.get = function () {
+            return __awaiter(this, void 0, void 0, function () {
+                var url, json;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            url = this._overriddenUrl;
                             return [4 /*yield*/, this._fetch(url)];
                         case 1:
                             json = (_a.sent());
@@ -18482,7 +18510,7 @@
                     switch (_a.label) {
                         case 0:
                             newScope = this.per(1);
-                            url = this._overdiddenUrl || newScope.model.url();
+                            url = this._overriddenUrl || newScope.model.url();
                             return [4 /*yield*/, newScope._fetch(url)];
                         case 1:
                             rawResult = (_a.sent());
@@ -18522,7 +18550,7 @@
         };
         Scope.prototype.fromUrl = function (url) {
             var copy = this.copy();
-            copy._overdiddenUrl = url;
+            copy._overriddenUrl = url;
             return copy;
         };
         Scope.prototype.extraParams = function (clause) {
@@ -19994,6 +20022,9 @@
         SpraypaintBase.find = function (id) {
             return this.scope().find(id);
         };
+        SpraypaintBase.get = function () {
+            return this.scope().get();
+        };
         SpraypaintBase.where = function (clause) {
             return this.scope().where(clause);
         };
@@ -20311,7 +20342,7 @@
         SpraypaintBase.prototype.resetRelationTracking = function (includeDirective) {
             this._originalRelationships = this.relationshipResourceIdentifiers(Object.keys(includeDirective));
         };
-        Object.defineProperty(SpraypaintBase.prototype, "relations", {
+        Object.defineProperty(SpraypaintBase.prototype, "linkRelations", {
             get: function () {
                 return this._linkRelations;
             },
@@ -20336,7 +20367,7 @@
                 var attributeName = this.klass.deserializeKey(key);
                 if (this.klass.linkList.hasOwnProperty(attributeName)) {
                     this._links[attributeName] = links[key];
-                    this._linkRelations[attributeName] = this.klass.linkList[key];
+                    this._linkRelations[attributeName] = this.klass.linkList[key].fromUrl(links[key]);
                 }
             }
         };
@@ -20531,7 +20562,7 @@
         };
         SingleAssociationBase.prototype.setter = function (context, val) {
             if (val && !val.hasOwnProperty("isRelationship")) {
-                if (!(val instanceof SpraypaintBase) && !Array.isArray(val)) {
+                if (!(val instanceof SpraypaintBase) && !Array.isArray(val) && !(val._overriddenUrl)) {
                     val = new this.klass(val);
                 }
                 context.relationships[this.name] = val;
@@ -20582,7 +20613,7 @@
         };
         HasMany.prototype.setter = function (context, val) {
             if (val && !val.hasOwnProperty("isRelationship")) {
-                if (!(val instanceof SpraypaintBase) && !Array.isArray(val)) {
+                if (!(val instanceof SpraypaintBase) && !Array.isArray(val) && !(val._overriddenUrl)) {
                     val = new this.klass(val);
                 }
                 context.relationships[this.name] = val;
@@ -20733,28 +20764,41 @@
             };
         }
     };
-    var LinkDecoratorFactory = function (configOrTarget) {
-        var trackLink = function (Model, propKey, value) {
-            if (value === void 0) { value = null; }
-            ensureModelInheritance(Model);
-            Model.linkList[propKey] = value;
+    var LinkDecoratorFactory = function (configOrTarget, propertyKey, optsOrType) {
+        var extend = function (ModelClass) {
+            ensureModelInheritance(ModelClass);
+            return ModelClass;
+        };
+        var factoryFn = function (target, propertyKey) {
+            var ModelClass = extend(target.constructor);
+            if (isModelClass(configOrTarget))
+                ModelClass.linkList[propertyKey] = configOrTarget;
         };
         if (isModernDecoratorDescriptor(configOrTarget)) {
             return Object.assign(configOrTarget, {
-                finisher: function (Model) {
-                    trackLink(Model, configOrTarget.key);
+                finisher: function (ModelClass) {
+                    factoryFn(ModelClass.prototype, configOrTarget.key);
                 }
             });
-            //   } else if (isModelClass(configOrTarget)) {
-            //     return (target: SpraypaintBase, propKey: string) => {
-            //       trackLink(target, propKey, configOrTarget)
-            //     }
-            //   } else if (isModelClass(configOrTarget)) {
+        }
+        else if (isModelClass(configOrTarget) && propertyKey) {
+            var target = configOrTarget;
+            factoryFn(target.prototype, propertyKey);
         }
         else {
-            return function (target, propKey) {
-                trackLink(target.constructor, propKey, configOrTarget);
+            var fn = function (targetOrDescriptor, propertyKey) {
+                if (isModernDecoratorDescriptor(targetOrDescriptor)) {
+                    return Object.assign(targetOrDescriptor, {
+                        finisher: function (ModelClass) {
+                            factoryFn(ModelClass.prototype, targetOrDescriptor.key);
+                        }
+                    });
+                }
+                else {
+                    return factoryFn(targetOrDescriptor, propertyKey);
+                }
             };
+            return fn;
         }
     };
     var ensureModelInheritance = function (ModelClass) {

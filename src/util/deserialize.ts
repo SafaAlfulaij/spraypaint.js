@@ -64,6 +64,16 @@ class Deserializer {
     return new klass()
   }
 
+  klassFor(type: string): typeof SpraypaintBase {
+    const klass = this.registry.get(type)
+
+    if (!klass) {
+      throw new Error(`Unknown type "${type}"`)
+    }
+
+    return klass
+  }
+
   relationshipInstanceFor(
     datum: JsonapiResource,
     records: SpraypaintBase[]
@@ -199,7 +209,7 @@ class Deserializer {
         if (Array.isArray(relationData)) {
           for (const datum of relationData) {
             const hydratedDatum = this.findResource(datum)
-            const associationRecords = instanceIdx[relationName]
+            const associationRecords = instanceIdx[relationName] || []
             let relatedInstance = this.relationshipInstanceFor(
               hydratedDatum,
               associationRecords
@@ -240,12 +250,20 @@ class Deserializer {
       if (relationships.hasOwnProperty(key)) {
         let relationName = instance.klass.deserializeKey(key)
 
-        if (instance.klass.attributeList[relationName]) {
+        const fieldClass = instance.klass.attributeList[relationName]
+        if (fieldClass) {
           const relationData = relationships[key].data
-          if (!relationData) {
-            continue
-          } // only links, empty, etc
-          callback(relationName, relationData)
+          if (relationData) callback(relationName, relationData)
+
+          instance[relationName + "Links"] = {}
+          const relationLinks = relationships[key].links
+          if (relationLinks && relationLinks.related) {
+            instance[relationName + "Links"] = {
+              related: this.klassFor(fieldClass.name).fromUrl(
+                relationLinks.related
+              )
+            }
+          }
         }
       }
     }

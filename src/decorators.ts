@@ -165,33 +165,54 @@ const AttrDecoratorFactory: {
   }
 }
 
-const LinkDecoratorFactory = function(
-  configOrTarget?: typeof SpraypaintBase | FieldDecoratorDescriptor
-): any {
-  const trackLink = (
-    Model: typeof SpraypaintBase,
-    propKey: string,
-    value: typeof SpraypaintBase | null = null
-  ) => {
-    ensureModelInheritance(Model)
-    Model.linkList[propKey] = value
+const LinkDecoratorFactory: {
+  (
+    configOrTarget?: typeof SpraypaintBase | FieldDecoratorDescriptor
+  ): DecoratorFn
+} = (configOrTarget?: any, propertyKey?: string, optsOrType?: any): any => {
+  const extend = (ModelClass: typeof SpraypaintBase): typeof SpraypaintBase => {
+    ensureModelInheritance(ModelClass)
+
+    return ModelClass
+  }
+
+  const factoryFn = (target: SpraypaintBase, propertyKey: string) => {
+    const ModelClass = extend(<any>target.constructor)
+
+    if (isModelClass(configOrTarget))
+      ModelClass.linkList[propertyKey] = configOrTarget
   }
 
   if (isModernDecoratorDescriptor(configOrTarget)) {
     return Object.assign(configOrTarget, {
-      finisher: (Model: typeof SpraypaintBase) => {
-        trackLink(Model, configOrTarget.key)
+      finisher: (ModelClass: typeof SpraypaintBase) => {
+        factoryFn(ModelClass.prototype, configOrTarget.key)
       }
     })
-    //   } else if (isModelClass(configOrTarget)) {
-    //     return (target: SpraypaintBase, propKey: string) => {
-    //       trackLink(target, propKey, configOrTarget)
-    //     }
-    //   } else if (isModelClass(configOrTarget)) {
+  } else if (isModelClass(configOrTarget) && propertyKey) {
+    const target = configOrTarget
+
+    factoryFn(target.prototype, propertyKey)
   } else {
-    return (target: SpraypaintBase, propKey: string) => {
-      trackLink(<any>target.constructor, propKey, configOrTarget)
+    const fn: {
+      (target: SpraypaintBase, propertyKey: string): void
+      (descriptor: FieldDecoratorDescriptor): void
+    } = (
+      targetOrDescriptor: SpraypaintBase | FieldDecoratorDescriptor,
+      propertyKey?: string
+    ) => {
+      if (isModernDecoratorDescriptor(targetOrDescriptor)) {
+        return Object.assign(targetOrDescriptor, {
+          finisher(ModelClass: typeof SpraypaintBase) {
+            factoryFn(ModelClass.prototype, targetOrDescriptor.key)
+          }
+        })
+      } else {
+        optsOrType = configOrTarget
+        return factoryFn(targetOrDescriptor, propertyKey as string)
+      }
     }
+    return fn
   }
 }
 

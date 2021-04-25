@@ -56,7 +56,11 @@ export class SingleAssociationBase<T extends SpraypaintBase>
 
   setter(context: SpraypaintBase, val: any): void {
     if (val && !val.hasOwnProperty("isRelationship")) {
-      if (!(val instanceof SpraypaintBase) && !Array.isArray(val)) {
+      if (
+        !(val instanceof SpraypaintBase) &&
+        !Array.isArray(val) &&
+        !val._overriddenUrl
+      ) {
         val = new this.klass(val)
       }
       context.relationships[this.name] = val
@@ -112,7 +116,11 @@ export class HasMany<T extends SpraypaintBase> extends Attribute<T[]>
 
   setter(context: SpraypaintBase, val: any): void {
     if (val && !val.hasOwnProperty("isRelationship")) {
-      if (!(val instanceof SpraypaintBase) && !Array.isArray(val)) {
+      if (
+        !(val instanceof SpraypaintBase) &&
+        !Array.isArray(val) &&
+        !val._overriddenUrl
+      ) {
         val = new this.klass(val)
       }
       context.relationships[this.name] = val
