@@ -187,6 +187,7 @@ const LinkDecoratorFactory = function(
     //     return (target: SpraypaintBase, propKey: string) => {
     //       trackLink(target, propKey, configOrTarget)
     //     }
+    //   } else if (isModelClass(configOrTarget)) {
   } else {
     return (target: SpraypaintBase, propKey: string) => {
       trackLink(<any>target.constructor, propKey, configOrTarget)
@@ -195,7 +196,7 @@ const LinkDecoratorFactory = function(
 }
 
 const ensureModelInheritance = (ModelClass: typeof SpraypaintBase) => {
-  if (ModelClass.currentClass !== ModelClass) {
+  if (ModelClass.currentClass && ModelClass.currentClass !== ModelClass) {
     ModelClass.currentClass.inherited(ModelClass)
   }
 }

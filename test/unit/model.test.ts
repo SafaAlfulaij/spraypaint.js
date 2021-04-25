@@ -1618,9 +1618,9 @@ describe("Model", () => {
         const person = new PersonWithLinks({ id: "1", firstName: "Stephen" })
         person.fromJsonapi(doc.data, doc)
         assertPersonIsCorrect(person)
-        console.log(person.klass.linkList)
-        console.log(person.links)
-        console.log(person.relations)
+        //         console.log(person.klass.linkList)
+        //         console.log(person.links)
+        //         console.log(person.relations)
       })
 
       it("from class", () => {
