@@ -258,10 +258,10 @@ class Deserializer {
           instance[relationName + "Links"] = {}
           const relationLinks = relationships[key].links
           if (relationLinks && relationLinks.related) {
+            let relatedClass = fieldClass.type
+            if (!relatedClass) relatedClass = this.klassFor(fieldClass.name)
             instance[relationName + "Links"] = {
-              related: this.klassFor(fieldClass.name).fromUrl(
-                relationLinks.related
-              )
+              related: relatedClass.fromUrl(relationLinks.related)
             }
           }
         }

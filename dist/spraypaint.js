@@ -18192,11 +18192,14 @@
                         var relationData = relationships[key].data;
                         if (relationData)
                             callback(relationName, relationData);
-                        instance[relationName + 'Links'] = {};
+                        instance[relationName + "Links"] = {};
                         var relationLinks = relationships[key].links;
                         if (relationLinks && relationLinks.related) {
-                            instance[relationName + 'Links'] = {
-                                related: this.klassFor(fieldClass.name).fromUrl(relationLinks.related)
+                            var relatedClass = fieldClass.type;
+                            if (!relatedClass)
+                                relatedClass = this.klassFor(fieldClass.name);
+                            instance[relationName + "Links"] = {
+                                related: relatedClass.fromUrl(relationLinks.related)
                             };
                         }
                     }
@@ -20480,6 +20483,7 @@
             this.type = undefined;
             this.persist = true;
             this.dirtyChecker = STRICT_EQUALITY_DIRTY_CHECKER;
+            this.metadata = undefined;
             if (!options) {
                 return;
             }
@@ -20494,6 +20498,9 @@
             }
             if (options.dirtyChecker) {
                 this.dirtyChecker = options.dirtyChecker;
+            }
+            if (options.metadata) {
+                this.metadata = options.metadata;
             }
         }
         Attribute.prototype.apply = function (ModelClass) {
@@ -20562,7 +20569,9 @@
         };
         SingleAssociationBase.prototype.setter = function (context, val) {
             if (val && !val.hasOwnProperty("isRelationship")) {
-                if (!(val instanceof SpraypaintBase) && !Array.isArray(val) && !(val._overriddenUrl)) {
+                if (!(val instanceof SpraypaintBase) &&
+                    !Array.isArray(val) &&
+                    !val._overriddenUrl) {
                     val = new this.klass(val);
                 }
                 context.relationships[this.name] = val;
@@ -20613,7 +20622,9 @@
         };
         HasMany.prototype.setter = function (context, val) {
             if (val && !val.hasOwnProperty("isRelationship")) {
-                if (!(val instanceof SpraypaintBase) && !Array.isArray(val) && !(val._overriddenUrl)) {
+                if (!(val instanceof SpraypaintBase) &&
+                    !Array.isArray(val) &&
+                    !val._overriddenUrl) {
                     val = new this.klass(val);
                 }
                 context.relationships[this.name] = val;

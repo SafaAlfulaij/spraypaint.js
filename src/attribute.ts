@@ -11,6 +11,7 @@ export interface AttrRecord<T> {
   type?: AttrType<T>
   persist?: boolean
   dirtyChecker?: DirtyChecker<T>
+  metadata?: object
 }
 
 export const attr = <T = any>(options?: AttrRecord<T>): Attribute<T> => {
@@ -30,6 +31,7 @@ export type AttributeOptions = Partial<{
   type: () => any
   persist: boolean
   dirtyChecker?: DirtyChecker<any>
+  metadata?: object
 }>
 
 export const STRICT_EQUALITY_DIRTY_CHECKER: DirtyChecker<any> = (
@@ -44,6 +46,7 @@ export class Attribute<T = any> {
   persist: boolean = true
   dirtyChecker: DirtyChecker<T> = STRICT_EQUALITY_DIRTY_CHECKER
   owner!: typeof SpraypaintBase
+  metadata?: object = undefined
 
   constructor(options: AttrRecord<T>) {
     if (!options) {
@@ -64,6 +67,10 @@ export class Attribute<T = any> {
 
     if (options.dirtyChecker) {
       this.dirtyChecker = options.dirtyChecker
+    }
+
+    if (options.metadata) {
+      this.metadata = options.metadata
     }
   }
 
