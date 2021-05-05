@@ -34,7 +34,7 @@ let Author: typeof SpraypaintBase
 const buildModels = () => {
   @Model({
     baseUrl: "http://example.com",
-    apiNamespace: "/api/v1/"
+    apiNamespace: "/api/v1"
   })
   class Base extends SpraypaintBase {}
   ApplicationRecord = Base

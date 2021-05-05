@@ -179,8 +179,11 @@ const LinkDecoratorFactory: {
   const factoryFn = (target: SpraypaintBase, propertyKey: string) => {
     const ModelClass = extend(<any>target.constructor)
 
-    if (isModelClass(configOrTarget))
+    if (isModelClass(configOrTarget)) {
       ModelClass.linkList[propertyKey] = configOrTarget
+    } else {
+      ModelClass.linkList[propertyKey] = null
+    }
   }
 
   if (isModernDecoratorDescriptor(configOrTarget)) {

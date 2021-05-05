@@ -1032,8 +1032,11 @@ export class SpraypaintBase {
 
     payload.forEach(each => {
       let eachJSON = each.asJSON()
-      if (json.data) json.data.push(eachJSON.data)
-      if (json.included) json.included.concat(eachJSON.included)
+      if (eachJSON.data) json.data.push(eachJSON.data)
+      if (eachJSON.included) {
+        if (!json.included) json.included = []
+        json.included.push(eachJSON.included)
+      }
     })
 
     try {
@@ -1213,9 +1216,11 @@ export class SpraypaintBase {
       const attributeName = this.klass.deserializeKey(key)
       if (this.klass.linkList.hasOwnProperty(attributeName)) {
         this._links[attributeName] = links[key]
-        this._linkRelations[attributeName] = this.klass.linkList[key].fromUrl(
-          links[key]
-        )
+        if (this.klass.linkList[key]) {
+          this._linkRelations[attributeName] = this.klass.linkList[key].fromUrl(
+            links[key]
+          )
+        }
       }
     }
   }

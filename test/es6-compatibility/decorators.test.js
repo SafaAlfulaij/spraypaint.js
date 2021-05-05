@@ -42,7 +42,8 @@ describe("Decorators work with ES6/Babel", () => {
         "supervisor"
       ])
       expect(Object.keys(Post.attributeList)).to.deep.eq(["title", "author"])
-      expect(UserWithLink.linkList).to.deep.eq(["self"])
+      console.log(UserWithLink.linkList)
+      expect(UserWithLink.linkList).to.deep.eq({ self: null })
     })
   })
 })
